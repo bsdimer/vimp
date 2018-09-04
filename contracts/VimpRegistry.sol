@@ -14,7 +14,7 @@ contract VimpRegistry {
         }
     }
 
-    function VimpRegistry() {
+    function VimpRegistry() public {
         owner = msg.sender;
     }
 
@@ -86,6 +86,10 @@ contract VimpRegistry {
 
     function getIssuer(address issuer) public constant returns (string) {
         return issuers[issuer];
+    }
+
+    function whoAmI() public constant returns (string) {
+        return issuers[msg.sender];
     }
 
 }

@@ -2,8 +2,8 @@
 import "../stylesheets/app.css";
 
 // Import libraries we need.
-import { default as Web3} from 'web3';
-import { default as contract } from 'truffle-contract';
+import {default as Web3} from 'web3';
+import {default as contract} from 'truffle-contract';
 
 // Import our contract artifacts and turn them into usable abstractions.
 import vimp_artefacts from '../../build/contracts/VimpRegistry.json';
@@ -18,76 +18,41 @@ var accounts;
 var account;
 
 window.App = {
-  start: function() {
-    var self = this;
+    start: function () {
+        VimpRegistry.setProvider(web3.currentProvider);
 
-    // Bootstrap the MetaCoin abstraction for Use.
-    MetaCoin.setProvider(web3.currentProvider);
-    VimpRegistry.setProvider(web3.currentProvider);
+        // Get the initial account balance so it can be displayed.
+        web3.eth.getAccounts(function (err, accs) {
+            if (err != null) {
+                alert("There was an error fetching your accounts.");
+                return;
+            }
 
-    // Get the initial account balance so it can be displayed.
-    web3.eth.getAccounts(function(err, accs) {
-      if (err != null) {
-        alert("There was an error fetching your accounts.");
-        return;
-      }
+            if (accs.length == 0) {
+                alert("Couldn't get any accounts! Make sure your Ethereum client is configured correctly.");
+                return;
+            }
 
-      if (accs.length == 0) {
-        alert("Couldn't get any accounts! Make sure your Ethereum client is configured correctly.");
-        return;
-      }
+            accounts = accs;
+            account = accounts[0];
+        });
+    },
 
-      accounts = accs;
-      account = accounts[0];
+    whoAmI: function () {
+        console.log(VimpRegistry);
+        var vimp;
+        VimpRegistry.deployed().then(function(instance) {
+            vimp = instance;
+        });
 
-      self.refreshBalance();
-    });
-  },
-
-  setStatus: function(message) {
-    var status = document.getElementById("status");
-    status.innerHTML = message;
-  },
-
-  refreshBalance: function() {
-    var self = this;
-
-    var meta;
-    MetaCoin.deployed().then(function(instance) {
-      meta = instance;
-      return meta.getBalance.call(account, {from: account});
-    }).then(function(value) {
-      var balance_element = document.getElementById("balance");
-      balance_element.innerHTML = value.valueOf();
-    }).catch(function(e) {
-      console.log(e);
-      self.setStatus("Error getting balance; see log.");
-    });
-  },
-
-  sendCoin: function() {
-    var self = this;
-
-    var amount = parseInt(document.getElementById("amount").value);
-    var receiver = document.getElementById("receiver").value;
-
-    this.setStatus("Initiating transaction... (please wait)");
-
-    var meta;
-    MetaCoin.deployed().then(function(instance) {
-      meta = instance;
-      return meta.sendCoin(receiver, amount, {from: account});
-    }).then(function() {
-      self.setStatus("Transaction complete!");
-      self.refreshBalance();
-    }).catch(function(e) {
-      console.log(e);
-      self.setStatus("Error sending coin; see log.");
-    });
-  }
+        /*vimp.whoAmI.call({from:account[0]}).then(function (result) {
+            var whoamiSpan = document.getElementById("whoami");
+            whoamiSpan.innerHTML = result.valueOf();
+        });*/
+    }
 };
 
-window.addEventListener('load', function() {
-  window.web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
-  App.start();
+window.addEventListener('load', function () {
+    window.web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
+    App.start();
 });
